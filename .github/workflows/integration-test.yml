@@ -23,6 +23,14 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Inject Laravel APP_KEY
+        run: |
+          sed -i "s|^APP_KEY=.*|APP_KEY=${{ secrets.APP_KEY }}|" docker/laravel.env
+
+      - name: Validate APP_KEY
+        run: |
+          grep APP_KEY docker/laravel.env
+
       - name: Build and start stack
         run: |
           # Clean up volumes from previous runs
@@ -31,14 +39,11 @@ jobs:
           docker compose build --parallel
           docker compose up -d --wait
           
-          # Generate and set key inside container
-          docker compose exec -T laravel php artisan key:generate --force
-          
           # Verify key was generated correctly (should output 44 chars for base64 32-byte key)
           docker compose exec -T laravel php artisan tinker --execute="echo 'Key length: ' . strlen(config('app.key')) . PHP_EOL;"
           
-          # Clear config cache to ensure key is loaded
-          docker compose exec -T laravel php artisan config:clear
+          # After containers start, clear Laravel cached config
+          docker compose exec -T laravel php artisan optimize:clear
           
           # Run fresh migrations to ensure clean database state
           docker compose exec -T laravel php artisan migrate:fresh --force
