@@ -23,6 +23,9 @@ RUN pip install --no-cache-dir git+https://github.com/kexinhuang12345/DeepPurpos
 # Install TDC from GitHub (Therapeutic Data Commons)
 RUN pip install --no-cache-dir git+https://github.com/mims-harvard/TDC.git
 
+# Install descriptastorus (required by DeepPurpose)
+RUN pip install --no-cache-dir git+https://github.com/bp-kelley/descriptastorus
+
 # Final stage
 FROM python:3.10-slim
 
