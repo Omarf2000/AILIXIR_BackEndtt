@@ -65,11 +65,8 @@ class AIScreeningPipeline:
         except ImportError as e:
             logger.error(f"❌ DeepPurpose not installed: {str(e)}")
             raise ImportError(
-                f"DeepPurpose is required for production. Install with:\n"
-                f"  pip install torch\n"
-                f"  pip install git+https://github.com/Alantic/TDC.git\n"
-                f"  pip install git+https://github.com/bp-kelley/descriptastorus\n"
-                f"  pip install pandas-flavor"
+                "DeepPurpose is required for production. Install with:\n"
+                "  pip install -r requirements.txt"
             ) from e
             
         except Exception as e:

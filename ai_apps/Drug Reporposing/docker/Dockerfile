@@ -17,14 +17,6 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Install DeepPurpose and dependencies from GitHub
-RUN pip install --no-cache-dir \
-    git+https://github.com/Alantic/TDC.git && \
-    pip install --no-cache-dir \
-    git+https://github.com/bp-kelley/descriptastorus && \
-    pip install --no-cache-dir \
-    pandas-flavor
-
 # Final stage
 FROM python:3.10-slim
 
