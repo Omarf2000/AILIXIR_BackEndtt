@@ -17,7 +17,8 @@ Complete API specification for AILIXIR-Backend, including all endpoints, authent
 - [AI Integration Endpoints](#ai-integration-endpoints)
 - [AI Service Endpoints](#ai-service-endpoints)
 - [Chemical Search Endpoints](#chemical-search-endpoints)
-- [Docking Endpoints](#docking-endpoints)
+- [Docking API](#docking-api)
+- [Convert SMILES API](#convert-smiles-api)
 - [User Management Endpoints](#user-management-endpoints)
 - [Awards & Scientists Endpoints](#awards--scientists-endpoints)
 - [News Endpoints](#news-endpoints)
@@ -798,96 +799,231 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 
 ---
 
-## 🔗 Docking Endpoints
+## Docking API
 
-### Submit Docking Job
+### POST `/api/docking/submit`
 
-```http
-POST /docking/submit
-Authorization: Bearer YOUR_ACCESS_TOKEN
-Content-Type: application/json
+- Auth required
+- Content type: `multipart/form-data`
+- Required fields:
+  - `protein_name` (string)
+  - `protein_file` (file)
+  - `center_x` (numeric)
+  - `center_y` (numeric)
+  - `center_z` (numeric)
+  - `box_size_x` (numeric)
+  - `box_size_y` (numeric)
+  - `box_size_z` (numeric)
+### VERY IMPORTANT  
+### Optional fields:   
+  - `ligand_name` (string)
+  - `exhaustiveness` (integer)
+  - `n_poses` (integer)
+### Must include exactly one of:
+  - `ligand_file` (file)
+  - `ligand_smiles` (string) 
 
+#### Example curl request
+
+```bash
+curl -X POST "{base_url}/api/docking/submit" \
+  -H "Authorization: Bearer {token}" \
+  -F "protein_name=EGFR" \
+  -F "protein_file=@protein.pdbqt" \
+  -F "ligand_name=Erlotinib" \
+  -F "ligand_smiles=CC1=CC(=O)NC2=C1C=CC=C2" \
+  -F "center_x=10.0" \
+  -F "center_y=15.0" \
+  -F "center_z=20.0" \
+  -F "box_size_x=25.0" \
+  -F "box_size_y=25.0" \
+  -F "box_size_z=25.0" \
+  -F "exhaustiveness=8" \
+  -F "n_poses=5"
+```
+
+#### Success response
+
+```json
 {
-  "protein_id": "1ABC",
-  "ligand_smiles": "CC(=O)Oc1ccccc1C(=O)O",
-  "binding_pocket": {
-    "center_x": 10.5,
-    "center_y": 20.3,
-    "center_z": 15.7
+  "success": true,
+  "message": "Docking Job Successfully Queued",
+  "data": {
+    "job_id": 123,
+    "status": "pending"
   }
 }
 ```
 
-**Response (202 Accepted):**
+
+---
+
+### GET `/api/docking/{id}`
+
+- Auth required
+- Path parameter:
+  - `id` (integer)
+
+#### Success response (pending or completed)
+
 ```json
 {
   "success": true,
-  "docking_id": "dock-abc-123-def",
-  "status": "queued",
-  "estimated_time_seconds": 300
-}
-```
-
-### Convert SMILES
-
-Convert SMILES string to molecular structure format:
-
-```http
-POST /docking/convert-smiles
-Authorization: Bearer YOUR_ACCESS_TOKEN
-Content-Type: application/json
-
-{
-  "smiles": "CC(=O)Oc1ccccc1C(=O)O",
-  "format": "pdb"
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "format": "pdb",
-  "data": "HEADER    ...",
-  "file_url": "https://cdn.example.com/structures/temp-abc-123.pdb"
-}
-```
-
-### Get Docking Status
-
-```http
-GET /docking/status/{docking_id}
-Authorization: Bearer YOUR_ACCESS_TOKEN
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "docking_id": "dock-abc-123-def",
-  "status": "completed",
-  "results": {
-    "binding_affinity": -7.5,
-    "rmsd": 1.23,
-    "docking_time_seconds": 245
+  "message": "Job details retrieved successfully",
+  "data": {
+    "job_id": 14,
+    "status": "completed",
+    "inputs": {
+      "protein": "EGFR",
+      "ligand": "Erlotinib"
+    },
+    "created_at": "2026-04-21T18:29:45+00:00",
+    "results": {
+      "vina_scores": [0, 0.001, 0.002],
+      "download_url": "{base_url}/api/docking/download/{job_id}"
+    }
   }
 }
 ```
 
-### Download Docking Results
+If the job is not completed, the `results` block may be omitted.
 
-```http
-GET /docking/download/{docking_id}
-Authorization: Bearer YOUR_ACCESS_TOKEN
+
+---
+
+### GET `/api/docking/history`
+
+- Auth required
+- Query parameters:
+  - `per_page` (integer, optional, default 15)
+
+#### Response
+
+```json
+{
+  "success": true,
+  "message": "Docking history retrieved successfully",
+  "data": {
+    "data": [
+      {
+        "job_id": 14,
+        "status": "completed",
+        "inputs": {
+          "protein": "EGFR",
+          "ligand": "Erlotinib"
+        },
+        "created_at": "2026-04-21T18:29:45+00:00",
+        "results": {
+          "vina_scores": [0, 0.001, 0.002],
+          "download_url": "{base_url}/api/docking/download/{job_id}"
+        }
+      }
+    ],
+    "pagination": {
+      "current_page": 1,
+      "per_page": 2,
+      "total": 3,
+      "last_page": 2,
+      "has_more": true
+    }
+  }
+}
 ```
 
-**Response (200 OK):**
-```
-Content-Type: application/zip
-Content-Disposition: attachment; filename="docking-results.zip"
+---
 
-# Contains: poses.pdb, scoring.txt, ligand.pdbqt
+### GET `/api/docking/download/{id}`
+
+- Auth required
+- Path parameter:
+  - `id` (integer)
+- Returns a file download for the completed docking result.
+- Content disposition filename: `docking_result_{id}.pdbqt`
+
+
+---
+
+## Convert SMILES API
+
+### GET `/api/convert-smiles/history`
+
+- Auth required
+- Query parameters:
+  - `per_page` (integer, optional, default 15)
+
+#### Response
+
+```json
+{
+  "success": true,
+  "message": "Conversion history retrieved successfully",
+  "data": {
+    "items": [
+      {
+        "job_id": 16,
+        "status": "completed",
+        "smiles": "CCN1CC(CCN2CCOCC2)C(c2ccccc2)(c2ccccc2)Cl=0",
+        "created_at": "2026-04-21T18:43:58+00:00",
+        "results": {
+          "download_url": "{base_url}/api/convert-smiles/download/{job_id}"
+        }
+      }
+    ],
+    "pagination": {
+      "current_page": 1,
+      "per_page": 3,
+      "total": 13,
+      "last_page": 5,
+      "has_more": true
+    }
+  }
+}
 ```
+
+---
+
+### POST `/api/convert-smiles/convert`
+
+- Auth required
+- Content type: `application/json`
+- Request body:
+  - `ligand_smiles` (string, required)
+
+#### Example curl request
+
+```bash
+curl -X POST "{base_url}/api/convert-smiles/convert" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"ligand_smiles":"CCN1CC(CCN2CCOCC2)C(c2ccccc2)(c2ccccc2)Cl=0"}'
+```
+
+#### Success response
+
+```json
+{
+  "success": true,
+  "message": "SMILES converted to PDBQT successfully",
+  "data": {
+    "job_id": 16,
+    "download_url": "{base_url}/api/convert-smiles/download/{job_id}",
+    "smiles": "CCN1CC(CCN2CCOCC2)C(c2ccccc2)(c2ccccc2)Cl=0"
+  }
+}
+```
+
+
+---
+
+### GET `/api/convert-smiles/download/{id}`
+
+- Auth required
+- Path parameter:
+  - `id` (integer)
+- Returns a file download for the converted PDBQT.
+- Content disposition filename: `converted_ligand_{id}.pdbqt`
+
+
 
 ---
 
