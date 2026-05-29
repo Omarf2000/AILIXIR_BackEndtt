@@ -43,7 +43,7 @@ COPY . /app
 RUN rm -rf /app/save_folder
 
 ARG DEEP_PURPOSE_MODEL=MPNN_CNN_BindingDB
-RUN python -c "from DeepPurpose.utils import download_pretrained_model; import os; \
+RUN /opt/venv/bin/python -c "from DeepPurpose.utils import download_pretrained_model; import os; \
 model_path = download_pretrained_model('${DEEP_PURPOSE_MODEL}', save_dir='/app/save_folder'); \
 assert os.path.isfile(os.path.join(model_path, 'config.pkl')), 'config.pkl missing after download'; \
 assert os.path.isfile(os.path.join(model_path, 'model.pt')), 'model.pt missing after download'"
@@ -57,7 +57,7 @@ EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+    CMD /opt/venv/bin/python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 
 
 # Run the application
