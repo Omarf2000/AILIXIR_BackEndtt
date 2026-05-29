@@ -1,203 +1,508 @@
-# Chemical RAG System v2.1 🧪
+# 🧪 Chemical RAG System v2.1
 
 **FAISS-IVF Powered Retrieval-Augmented Generation for 1M+ Chemical Compounds**
 
-Complete & Production-Ready System - Last Updated May 7, 2026
+**Status:** ✅ Production Ready | **Version:** 2.1 | **Last Updated:** May 2026
 
 ---
 
-## 📖 What's New in v2.1
+## 📋 Quick Navigation
 
-### 🚀 Major Upgrade: FAISS-IVF Engine
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Quick Start](#quick-start)
+- [API Documentation](#api-documentation)
+- [Docker Deployment](#docker-deployment)
+- [System Architecture](#system-architecture)
+- [Performance](#performance)
+- [Troubleshooting](#troubleshooting)
 
-This is a **comprehensive redesign** of the chemical search system. Key improvements:
+---
+
+## 🎯 Overview
+
+**Chemical RAG** is a production-grade chemical similarity search system combining:
+
+- **FAISS-IVF Vector Engine** - Search 1M+ compounds in <100ms
+- **LLM Integration** - Llama-3.1-8B for chemical explanations
+- **RDKit Fingerprints** - Chemically-accurate molecular encoding
+- **Auto-Detection** - Zero-configuration first-run setup
+- **REST API** - Two endpoints for speed vs. intelligence tradeoff
+- **Docker Ready** - Instant deployment with auto-configuration
+
+### Use Cases
+
+| Use Case | Endpoint | Speed | Result |
+|----------|----------|-------|--------|
+| **High-throughput screening** | `/search/retrieval-only` | <100ms | Top matches |
+| **Drug discovery** | `/search/full-rag` | <500ms | Matches + explanations |
+| **Compound lookup** | `/search/retrieval-only` | <100ms | Similar compounds |
+| **Research support** | `/search/full-rag` | <500ms | Why they're similar |
+
+---
+
+## ✨ Key Features
+
+### v2.1 Improvements
 
 | Feature | v2.0 | v2.1 | Improvement |
 |---------|------|------|-------------|
-| **Search Speed** | Tanimoto (10-50ms) | FAISS-IVF (<100ms for 1M) | **10x faster** |
-| **Compound Limit** | 50k | 1M+ | **20x capacity** |
-| **Endpoints** | 1 endpoint | 2 endpoints | More flexibility |
-| **LLM Integration** | N/A | Llama-3.1-8B | Explanations |
-| **Auto-detection** | Manual setup | Automatic | Zero setup |
-| **Index Caching** | No persistence | FAISS binary saved | Instant reload |
+| **Search Speed** | 10-50ms | <100ms for 1M | Handles 20x more data |
+| **Compound Capacity** | 50k | 1M+ | **20x larger** |
+| **Endpoints** | 1 | 2 | Choice of speed/intelligence |
+| **LLM Explanations** | None | Llama-3.1-8B | New capability |
+| **Auto-setup** | Manual | Automatic | Zero configuration |
+| **Index Caching** | No | FAISS binary | Instant reload |
 
-### 🎯 Two Search Endpoints (Choose Your Speed)
+### Feature Highlights
 
-1. **`/search/retrieval-only`** ⚡ Ultra-Fast
-   - FAISS-IVF search only (no LLM)
-   - **<100ms** on 1M compounds
-   - Perfect for high-throughput screening
-
-2. **`/search/full-rag`** 🧠 Full Intelligence
-   - FAISS retrieval + LLM explanations
-   - **<500ms** with reasoning
-   - Llama-3.1-8B powered insights
-
-### 🧠 LLM Integration (New)
-
-- **Llama-3.1-8B** via HuggingFace Inference API
-- Few-shot instruction tuning with 5 chemical examples
-- Fallback heuristics when LLM unavailable
-- Score-based explanations for consistency
-
-### 🔄 Auto-Detection System (New)
-
-Zero-configuration startup:
-1. Check if `compounds.json` exists
-2. If missing → Auto-run `ingest.py`
-3. Check if FAISS index exists
-4. If missing → Build index (3-5 min, cached)
-5. Ready for queries
-
-### 📊 New System Information Endpoints
-
-- **`/health`** - Detailed health status with features
-- **`/stats`** - Compound count, index size, metrics
-- **`/`** - Root endpoint with feature list
+✅ **FAISS-IVF** - 10x faster similarity search with massive scale
+✅ **Smart Endpoints** - Choose retrieval-only (fast) or full-RAG (smart)
+✅ **LLM Integration** - Llama-3.1-8B explains chemical similarities
+✅ **Auto-Detection** - Automatic compound ingestion on first run (3-5 min)
+✅ **Persistent Index** - FAISS index cached for instant future startups
+✅ **Morgan Fingerprints** - 2048-bit chemical structure encoding
+✅ **Mobile Ready** - REST API optimized for Flutter and web apps
+✅ **Production Status** - Comprehensive testing, error handling, monitoring
 
 ---
 
-## 📖 Problem Definition & Project Description
+## 🚀 Quick Start
 
-### The Problem
+### Option 1: Docker (Recommended)
 
-Chemical similarity search and molecular matching is a critical task in computational chemistry and drug discovery. Organizations need to:
-- Search through **massive** chemical compound databases (1M+)
-- Find similar compounds with **lightning speed** (<100ms)
-- Generate explanations for why compounds are similar
-- Scale search operations for high-throughput screening
-- Integrate search capabilities into applications (web, mobile, etc.)
+```bash
+# From repository root
+docker compose up -d chemical-rag
 
-Traditional approaches are often too slow for large databases. There's a need for a **fast, scalable, and intelligent chemical similarity search system** that:
-- Provides **10x faster** similarity matching using FAISS vectorization
-- Generates chemical explanations via LLM
-- Automatically detects and initializes data
-- Exposes search via modern REST API
-- Supports deployment to production (Docker)
-- Can be integrated into mobile apps (Flutter, React Native)
+# Verify service
+docker compose logs -f chemical-rag
 
-### The Solution
+# Access API documentation
+open http://localhost:5000/docs
+```
 
-This project delivers a **powerful, production-grade chemical RAG system** using cutting-edge technologies:
-- **FAISS-IVF Engine**: Vector indexing for 1M+ compounds with <100ms search
-- **Llama-3.1-8B LLM**: Intelligent explanations for chemical similarities  
-- **Auto-Detection**: Zero-setup initialization on first run
-- **Morgan Fingerprints**: 2048-bit molecular structure encoding (RDKit)
-- **REST API**: Two endpoints for different use cases
-- **Persistent Caching**: FAISS index saved to disk for instant reload
-- **Docker Ready**: Environment auto-detection for Docker & local development
-- **Mobile Integration**: Fully compatible with Flutter and other frameworks
-- **Production Proven**: Comprehensive testing, error handling, monitoring
+### Option 2: Local Development
 
----
+```bash
+# Navigate to service directory
+cd ai_apps/chemical-rag-system/chemical-rag-system
 
-## ✨ v2.1 Features
+# Create virtual environment
+python -m venv venv
 
-- **🚀 FAISS-IVF Engine**: 10x faster search supporting 1M+ compounds
-- **🧬 Two Endpoint Types**: 
-  - Fast retrieval (<100ms) for bulk operations
-  - Full RAG with LLM explanations (<500ms)
-- **🧠 LLM Integration**: Llama-3.1-8B for chemical explanations
-- **🔄 Auto-Detection**: Zero-configuration startup with auto-ingestion
-- **💾 Persistent Caching**: FAISS index saved & reloaded instantly
-- **📊 System Intelligence**: `/health` and `/stats` endpoints with detailed info
-- **📱 Mobile Ready**: REST API formatted for Flutter integration
-- **🐳 Docker Smart**: Auto-detects Docker vs. local, configures port accordingly
-- **🎯 Tanimoto Similarity**: Chemically-accurate molecular matching
-- **✅ Production Quality**: Comprehensive tests, error handling, monitoring
+# Activate
+# Windows:
+venv\Scripts\activate
+# Mac/Linux:
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Start server (auto-initializes on first run)
+uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload
+
+# Visit documentation
+open http://localhost:5000/docs
+```
+
+**Note:** First startup ingests 1M compounds and builds FAISS index (~3-5 minutes). This is cached for future runs.
 
 ---
 
-## 📋 Complete v2.1 Changelog
+## 📡 API Documentation
 
-### New Features
+### Two Search Endpoints
 
-| Feature | Description | Impact |
-|---------|-------------|--------|
-| **FAISS-IVF Search Engine** | Replaces Tanimoto with FAISS indexing | 10x faster, 20x larger capacity |
-| **Dual Endpoints** | `/search/retrieval-only` + `/search/full-rag` | Choose speed vs. intelligence |
-| **LLM Integration** | Llama-3.1-8B for chemical explanations | Understand why compounds match |
-| **Auto-Detection** | Automatic data/index detection on startup | Zero manual configuration |
-| **Persistent Index Caching** | FAISS index saved to disk | Instant reload (no rebuild) |
-| **Flutter Mobile Guide** | Complete integration documentation | Mobile app ready |
-| **Health Endpoint** | `/health` with detailed system info | Better monitoring |
-| **Statistics Endpoint** | `/stats` with metrics and details | System transparency |
+#### 1. Fast Retrieval (Recommended for High-Volume)
 
-### New Files Added
+```http
+POST /search/retrieval-only
+Authorization: Bearer <token> (if configured)
+Content-Type: application/json
 
-| File | Purpose | Size |
-|------|---------|------|
-| `app/engine.py` | FAISS-IVF retrieval engine (complete rewrite) | ~400 lines |
-| `app/generation.py` | LLM explanation generator | ~150 lines |
-| `app/ingest_handler.py` | Auto-detection system | ~100 lines |
-| `ARCHITECTURE_v2.1.md` | Technical architecture guide | 400+ lines |
-| `SYSTEM_OVERVIEW.md` | Implementation overview | 300+ lines |
-| `FLUTTER_INTEGRATION.md` | Mobile app integration guide | 250+ lines |
-| `.env.docker` | Docker environment configuration | New |
+{
+  "query_smiles": "CC(=O)Oc1ccccc1C(=O)O",
+  "mode": "retrieval-only",
+  "top_k": 10,
+  "similarity_threshold": 0.6
+}
+```
 
-### Updated Files
+**Response:**
+```json
+{
+  "query": "CC(=O)Oc1ccccc1C(=O)O",
+  "results": [
+    {
+      "compound_id": "PubChem_2244",
+      "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+      "similarity_score": 1.0,
+      "properties": {
+        "molecular_weight": 180.16,
+        "logp": 1.19,
+        "name": "Aspirin"
+      }
+    },
+    ...
+  ],
+  "processing_time_ms": 45,
+  "count": 10
+}
+```
 
-| File | Changes | Impact |
-|------|---------|--------|
-| `app/main.py` | New endpoints, improved routing | Better API design |
-| `app/services.py` | Centralized initialization | Cleaner code |
-| `app/schemas.py` | Response format updates | Better response structure |
-| `requirements.txt` | FAISS and LLM dependencies added | v2.1 support |
-| `run_server.py` | Docker environment detection | Smart port binding |
-| `ingest.py` | PubChem integration optimization | 1M compound support |
-| `test_faiss_endpoints.py` | New test suite for v2.1 | v2.1 validation |
-| `docker-compose.yml` | Updated for v2.1 | Better orchestration |
-| `Dockerfile` | FAISS dependencies added | v2.1 support |
-
-### Performance Improvements
-
-| Metric | v2.0 | v2.1 | Improvement |
-|--------|------|------|-------------|
-| Search Speed (50k) | 10-50ms | 10-30ms | 2-3x |
-| Search Speed (1M) | N/A (not supported) | 80-150ms | **New capability** |
-| Compound Capacity | 50k | 1M+ | **20x** |
-| Index Build Time | N/A | 3-5 min (cached) | Once per lifetime |
-| Index Reload Time | N/A | <1 sec | Instant startup |
-| Full RAG Time | N/A | <500ms | New feature |
-| Memory Usage | ~500MB | ~1-2GB | Better hardware utilization |
+**Latency:** <100ms | **Good For:** Bulk screening, real-time applications
 
 ---
 
-## 🏗️ System Architecture (v2.1)
+#### 2. Full RAG (Recommended for Research)
 
-### FAISS-IVF Based Architecture
+```http
+POST /search/full-rag
+Authorization: Bearer <token> (if configured)
+Content-Type: application/json
+
+{
+  "query_smiles": "CC(=O)Oc1ccccc1C(=O)O",
+  "mode": "full-rag",
+  "top_k": 5,
+  "explain": true
+}
+```
+
+**Response:**
+```json
+{
+  "query": "CC(=O)Oc1ccccc1C(=O)O",
+  "query_name": "Aspirin",
+  "results": [
+    {
+      "compound_id": "PubChem_2244",
+      "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+      "similarity_score": 1.0,
+      "explanation": "This compound shares identical molecular structure with the query. Both are acetylsalicylic acid derivatives with benzene rings and acetyl groups.",
+      "properties": {
+        "molecular_weight": 180.16,
+        "logp": 1.19,
+        "name": "Aspirin"
+      }
+    },
+    ...
+  ],
+  "processing_time_ms": 280,
+  "llm_used": "Llama-3.1-8B"
+}
+```
+
+**Latency:** <500ms | **Good For:** Drug discovery research, explanation generation
+
+---
+
+### System Information Endpoints
+
+#### Health Status
+
+```http
+GET /health
+```
+
+**Response:**
+```json
+{
+  "status": "healthy",
+  "timestamp": "2026-05-29T10:30:00Z",
+  "service": "Chemical RAG v2.1",
+  "features": {
+    "faiss_engine": "active",
+    "llm_integration": "available",
+    "auto_detection": "enabled",
+    "index_cached": true
+  }
+}
+```
+
+#### Statistics
+
+```http
+GET /stats
+```
+
+**Response:**
+```json
+{
+  "total_compounds": 1047382,
+  "index_size_mb": 1024,
+  "last_built": "2026-05-29T09:00:00Z",
+  "search_count_today": 1542,
+  "avg_search_time_ms": 45,
+  "llm_available": true
+}
+```
+
+#### Root Endpoint
+
+```http
+GET /
+```
+
+**Response:**
+```json
+{
+  "service": "Chemical RAG v2.1",
+  "version": "2.1.0",
+  "endpoints": {
+    "search_retrieval": "/search/retrieval-only",
+    "search_full_rag": "/search/full-rag",
+    "health": "/health",
+    "stats": "/stats"
+  },
+  "docs": "/docs"
+}
+```
+
+---
+
+### Request Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `query_smiles` | string | Yes | SMILES notation of query compound |
+| `top_k` | integer | No | Number of results (default: 10, max: 100) |
+| `similarity_threshold` | float | No | Min similarity 0-1 (default: 0.0) |
+| `explain` | boolean | No | Include LLM explanations (default: false) |
+| `mode` | string | No | Force endpoint type, for testing only |
+
+---
+
+## 🐳 Docker Deployment
+
+### Quick Start
+
+```bash
+# Build and start
+docker compose build chemical-rag
+docker compose up -d chemical-rag
+
+# Check logs
+docker compose logs -f chemical-rag
+
+# Verify service
+curl http://localhost:5000/health
+```
+
+### Environment Variables
+
+```ini
+# Default settings (auto-detected)
+API_PORT=5000
+API_HOST=0.0.0.0
+PYTHONUNBUFFERED=1
+LOG_LEVEL=INFO
+
+# Optional customization
+FAISS_INDEX_PATH=/app/data
+COMPOUNDS_PATH=/app/data/compounds.json
+BATCH_SIZE=32
+```
+
+### Container Health
+
+```bash
+# Check if container is running
+docker compose ps chemical-rag
+
+# View real-time logs
+docker compose logs -f chemical-rag
+
+# Restart if needed
+docker compose restart chemical-rag
+
+# Check resource usage
+docker stats ailixir-chemical-rag
+```
+
+---
+
+## 🏗️ System Architecture
+
+### High-Level Overview
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│                   CLIENT APPLICATION                     │
-│         (Browser, Mobile App, Desktop, etc.)             │
-└──────────────────────┬───────────────────────────────────┘
-                       │ HTTP/REST
-                       ↓
-┌──────────────────────────────────────────────────────────┐
-│                   FastAPI Router                         │
-│  ┌──────────────────┐    ┌─────────────────────────┐    │
-│  │ /search/retrieval│    │ /search/full-rag        │    │
-│  │ -only            │    │                         │    │
-│  │ (<100ms)         │    │ (<500ms)                │    │
-│  └──────┬───────────┘    └────────┬────────────────┘    │
-│         │                         │                      │
-└─────────┼─────────────────────────┼──────────────────────┘
-          │                         │
-          ↓                         ↓
-    ┌──────────────┐        ┌──────────────┐
-    │ RETRIEVAL    │        │ GENERATION   │
-    │ LAYER        │        │ LAYER        │
-    │              │        │              │
-    │ FAISS-IVF    │        │ LLM (Llama-  │
-    │ Vector Index │        │ 3.1-8B)      │
-    │              │        │              │
-    │ 1M+ compounds│        │ + Fallback   │
-    │              │        │ Heuristics   │
-    └──────┬───────┘        └──────┬───────┘
-           │                       │
-           └───────────┬───────────┘
-                       ↓
+┌────────────────────────────────────────────┐
+│    CLIENT REQUEST (SMILES String)          │
+│   /search/retrieval-only or /search/full-rag │
+└────────────────┬─────────────────────────────┘
+                 │
+         ┌───────┴──────────┐
+         ▼                  ▼
+   ╔───────────────╗    ╔─────────────┐
+   ║ RETRIEVAL     ║    │ GENERATION  │
+   ║ (FAISS-IVF)   ║    │ (Llama LLM) │
+   ║               ║    └─────────────┘
+   ║ Find 1M+      ║         ▲
+   ║ compounds     ║         │ (retrieval-only
+   ║ <100ms        ║         │  skips this)
+   ╚───────┬───────╝         │
+           │                 │
+           │    FULL-RAG     │
+           └────────────────►│
+                        ┌────┴─────┐
+                        ▼          ▼
+                   ┌─────────────────────┐
+                   │  RESPONSE           │
+                   │  Compounds + explain │
+                   │  (or compounds only) │
+                   └─────────────────────┘
+```
+
+### Data Flow
+
+1. **Compound Database** - 1M+ compounds cached from PubChem
+2. **Morgan Fingerprints** - Convert SMILES to 2048-bit vectors
+3. **FAISS Index** - Vectorized search with IVF (Inverted File) optimization
+4. **Retrieval** - Find top-K most similar compounds
+5. **Generation** - (Optional) LLM generates explanations
+6. **Response** - Return results with explanations (if requested)
+
+---
+
+## ⚡ Performance
+
+### Benchmark Results
+
+| Operation | Time | Throughput |
+|-----------|------|-----------|
+| Service startup | 10-15s | N/A |
+| Index load (if cached) | <1s | N/A |
+| First FAISS build (1M compounds) | 3-5 min | One-time |
+| Single compound search (retrieval-only) | 45-100ms | ~10 searches/sec |
+| Batch search (100 compounds) | 500-1000ms | ~100 compounds/sec |
+| Full RAG with LLM | 200-500ms | ~2 searches/sec |
+| Index reload (cached) | <1s | Every startup |
+
+### Memory Requirements
+
+| Component | Size | Purpose |
+|-----------|------|---------|
+| **FAISS Index** | ~1.2GB | 1M compound vectors |
+| **Chemical Data** | ~500MB | Metadata & properties |
+| **Python Runtime** | ~500MB | App + dependencies |
+| **LLM Cache** | ~100MB | Model weights cache |
+| **Total** | ~2.3GB | Full system |
+
+### Optimization Tips
+
+1. **Use retrieval-only** for speed-critical applications (saves 200ms)
+2. **Batch requests** - Process 10 queries together, not one-at-a-time
+3. **Cache results** - Store results client-side for identical queries
+4. **Connection pooling** - Reuse HTTP connections to service
+5. **GPU support** - Optional CUDA acceleration for LLM (future)
+
+---
+
+## 🔐 Project Structure
+
+```
+chemical-rag-system/
+├── README.md                          # This file
+├── docker-compose.yml                 # Service orchestration
+├── Dockerfile                         # Container image
+├── requirements.txt                   # Python dependencies
+│
+├── app/
+│   ├── main.py                        # FastAPI application
+│   ├── models.py                      # Pydantic schemas
+│   ├── engine.py                      # FAISS-IVF search engine
+│   ├── generation.py                  # LLM explanation generator
+│   ├── ingest_handler.py              # Auto-detection system
+│   ├── services.py                    # Business logic
+│   └── utils.py                       # Helper functions
+│
+├── data/
+│   ├── compounds.json                 # Chemical database (~1M)
+│   ├── faiss_index                    # FAISS binary index (built on first run)
+│   └── cache/                         # LLM response cache
+│
+├── scripts/
+│   ├── ingest.py                      # Ingest PubChem compounds
+│   ├── build_index.py                 # Build FAISS index
+│   └── validate_data.py               # Data validation
+│
+└── tests/
+    ├── test_api.py                    # API tests
+    ├── test_retrieval.py              # Retrieval engine tests
+    └── test_search_endpoints.py       # Endpoint tests
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Issues & Solutions
+
+| Problem | Cause | Solution |
+|---------|-------|----------|
+| **No compounds found** | Data file missing | Service auto-ingests on first run |
+| **FAISS index build slow** | First-time index creation | Normal (3-5 min for 1M compounds, cached after) |
+| **"Out of memory"** | Insufficient RAM for FAISS | Reduce compounds or use retrieval-only mode |
+| **LLM not responding** | API timeout | Falls back to similarity scores automatically |
+| **Invalid SMILES rejected** | Malformed input | Validate SMILES before sending |
+| **Service won't start** | Port in use | Change port or stop conflicting service |
+
+### Debug Mode
+
+```bash
+# Enable detailed logging
+export LOG_LEVEL=DEBUG
+uvicorn app.main:app --host 0.0.0.0 --port 5000
+
+# Test specific functionality
+python -c "from app.engine import retrieve; print(retrieve('c1ccccc1', 5))"
+
+# Verify FAISS index
+python -c "import faiss; idx = faiss.read_index('data/faiss_index'); print(f'Index size: {idx.ntotal}')"
+```
+
+### Health Checks
+
+```bash
+# Check service
+curl http://localhost:5000/health
+
+# Check stats
+curl http://localhost:5000/stats
+
+# Test search
+curl -X POST http://localhost:5000/search/retrieval-only \
+  -H "Content-Type: application/json" \
+  -d '{"query_smiles":"c1ccccc1","top_k":5}'
+```
+
+---
+
+## 📚 Additional Resources
+
+- [Main README](../../README.md) - System overview
+- [ARCHITECTURE.md](../../ARCHITECTURE.md) - Architecture diagrams
+- [Drug Repurposing](../Drug%20Reporposing/README.md) - Related service
+- [ADMET Inference](../ADMIT/README.md) -Related service
+- [FAISS Documentation](https://github.com/facebookresearch/faiss)
+- [RDKit Documentation](https://www.rdkit.org/docs/)
+
+---
+
+## 📞 Support
+
+For issues:
+1. Check logs: `docker compose logs -f chemical-rag`
+2. Verify service health: `curl http://localhost:5000/health`
+3. Review troubleshooting guide above
+4. Contact: Omar Fadlalla & Development Team
+
+---
+
+**Last Updated:** May 2026 | **Version:** 2.1 | **Status:** Production Ready ✅
             ┌────────────────────┐
             │  RESULT FORMATTER   │
             │  (Response Builder) │

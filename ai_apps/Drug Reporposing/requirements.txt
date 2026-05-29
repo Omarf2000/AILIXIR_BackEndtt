@@ -23,7 +23,7 @@ httpx==0.25.2
 # Deep Learning Framework
 torch==2.0.1
 torchvision==0.15.2
-torchaudio==2.0.1
+torchaudio==2.0.2
 
 # DeepPurpose Dependencies (REQUIRED for production)
 # NOTE: DeepPurpose is not on PyPI - install from GitHub:
