@@ -79,7 +79,7 @@ USER www-data
 
 EXPOSE 8000
 
-HEALTHCHECK --interval=15s --timeout=5s --start-period=40s --retries=5 \
+HEALTHCHECK --interval=15s --timeout=5s --start-period=120s --retries=8 \
     CMD php -r "exit((int)(@file_get_contents('http://127.0.0.1:8000') === false));"
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

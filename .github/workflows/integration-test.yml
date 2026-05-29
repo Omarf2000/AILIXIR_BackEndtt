@@ -23,47 +23,74 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Inject Laravel APP_KEY
+      - name: Inject Laravel APP_KEY (if secret exists)
         run: |
-          sed -i "s|^APP_KEY=.*|APP_KEY=${{ secrets.APP_KEY }}|" docker/laravel.env
-
-      - name: Validate APP_KEY
-        run: |
-          grep APP_KEY docker/laravel.env
+          if [ -n "${{ secrets.APP_KEY }}" ]; then
+            sed -i "s|^APP_KEY=.*|APP_KEY=${{ secrets.APP_KEY }}|" docker/laravel.env
+            echo "APP_KEY injected from secret"
+          else
+            echo "APP_KEY secret not set — entrypoint will auto-generate"
+          fi
 
       - name: Build and start stack
         run: |
           # Clean up volumes from previous runs
           docker compose down -v 2>/dev/null || true
-          
+
           docker compose build --parallel
-          docker compose up -d --wait
-          
-          # Verify key was generated correctly (should output 44 chars for base64 32-byte key)
-          docker compose exec -T laravel php artisan tinker --execute="echo 'Key length: ' . strlen(config('app.key')) . PHP_EOL;"
-          
-          # After containers start, clear Laravel cached config
-          docker compose exec -T laravel php artisan optimize:clear
-          
-          # Run fresh migrations to ensure clean database state
-          docker compose exec -T laravel php artisan migrate:fresh --force
+          docker compose up -d
+
+      - name: Show service status (early)
+        if: always()
+        run: docker compose ps -a
+
+      - name: Wait for Laravel to become healthy
+        run: |
+          echo "Waiting for ailixir-laravel container to become healthy..."
+          for i in $(seq 1 60); do
+            STATUS=$(docker inspect --format='{{.State.Health.Status}}' ailixir-laravel 2>/dev/null || echo "unknown")
+            echo "  [$i/60] status=$STATUS"
+
+            if [ "$STATUS" = "healthy" ]; then
+              echo "Laravel container is healthy!"
+              exit 0
+            fi
+
+            if [ "$STATUS" = "unhealthy" ]; then
+              echo "Container reported unhealthy — checking logs..."
+              docker compose logs --tail=80 laravel
+              # Give it more time — the healthcheck may have fired during migration
+              if [ "$i" -lt 40 ]; then
+                echo "  Still within tolerance window, continuing to wait..."
+                sleep 5
+                continue
+              fi
+              echo "Container still unhealthy after extended wait"
+              exit 1
+            fi
+
+            sleep 5
+          done
+          echo "Timed out waiting for Laravel"
+          docker compose logs --tail=100 laravel
+          exit 1
 
       - name: Show service status
         if: always()
         run: docker compose ps -a
 
-      - name: Wait for Laravel API
+      - name: Verify Laravel is responding
         run: |
-          for i in $(seq 1 60); do
-            if curl -sf http://localhost:8080/ > /dev/null 2>&1; then
-              echo "Laravel is up"
-              exit 0
-            fi
-            echo "Waiting for Laravel ($i/60)..."
-            sleep 5
-          done
-          docker compose logs laravel
-          exit 1
+          curl -sf http://localhost:8080/ > /dev/null 2>&1 || {
+            echo "Laravel not responding on port 8080"
+            docker compose logs --tail=50 laravel
+            exit 1
+          }
+          echo "Laravel is responding"
+
+      - name: Run fresh migrations
+        run: |
+          docker compose exec -T laravel php artisan migrate:fresh --force --no-interaction
 
       - name: Test aggregated AI health via Laravel
         run: |
