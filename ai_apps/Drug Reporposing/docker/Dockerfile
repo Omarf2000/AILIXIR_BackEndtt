@@ -1,5 +1,5 @@
 # Multi-stage build for optimized image
-FROM python:3.10-slim as builder
+FROM python:3.10-slim AS builder
 
 # Install system dependencies for building
 RUN apt-get update && apt-get install -y --no-install-recommends \

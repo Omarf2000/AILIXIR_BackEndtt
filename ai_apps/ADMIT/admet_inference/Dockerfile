@@ -1,7 +1,7 @@
 # ============================================================
 # Stage 1: Builder - Compile dependencies
 # ============================================================
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 # تثبيت أدوات البناء الضرورية
 RUN apt-get update && apt-get install -y --no-install-recommends \
