@@ -39,6 +39,10 @@ WORKDIR /app
 # Copy application code
 COPY . /app
 
+# Download DeepPurpose pretrained model at build time (avoids runtime network dependency)
+ARG DEEP_PURPOSE_MODEL=MPNN_CNN_BindingDB
+RUN python -c "from DeepPurpose.utils import download_pretrained_model; download_pretrained_model('${DEEP_PURPOSE_MODEL}')"
+
 # Create non-root user for security
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
